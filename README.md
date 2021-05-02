@@ -102,7 +102,7 @@ chartOrder:[
 ## Custom Charts
 
 You can add a series of custom charts to the configuration.
-A custom chart needs an id, an title and an callback, so the minimal configuration is:
+A custom chart needs an id, a title and a callback, so the minimal configuration is:
 ```javascript
 // config
 customCharts:[{
