@@ -272,9 +272,13 @@ socket.on('esm_start', function (data) {
 
 
     customCharts.forEach(chart => {
-        chart.Stat.textContent = chart.prefix + chart.defaultValue + chart.suffix;
+        if (chart.Stat) {
+            chart.Stat.textContent = chart.prefix + chart.defaultValue + chart.suffix;
+        }
         if (os) {
-            chart.Stat.textContent = chart.prefix + os.customCharts[chart.id].toFixed(chart.decimalFixed) + chart.suffix;
+            if (chart.Stat) {
+                chart.Stat.textContent = chart.prefix + os.customCharts[chart.id].toFixed(chart.decimalFixed) + chart.suffix;
+            }
             chart.Chart.data.datasets[0].data.push(os.customCharts[chart.id]);
             chart.Chart.data.labels.push(os.timestamp);
         }

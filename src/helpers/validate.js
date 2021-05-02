@@ -51,5 +51,10 @@ module.exports = config => {
       ? config.customCharts
       : defaultConfig.customCharts;
 
+  config.chartOrder =
+    Array.isArray(config.chartOrder)
+      ? config.chartOrder
+      : defaultConfig.chartOrder;
+
   return config;
 };

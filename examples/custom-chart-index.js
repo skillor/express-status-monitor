@@ -25,6 +25,10 @@ app.use(
       {
         id: 'mychart',
         title: 'MyChart',
+        customLabel: `<h5>Money: <b id="mychartStat"></b></h5>
+          <h6 class="status-code status-code-2xx">Some</h6>
+          <h6 class="status-code status-code-3xx">Dots</h6>
+          <h6 class="status-code status-code-4xx">Here</h6>`,
         defaultValue: '0.00',
         decimalFixed: 2,
         suffix: ' €',
@@ -32,6 +36,17 @@ app.use(
           return Math.random();
         }
       }
+    ],
+    chartOrder: [
+      'mychart',
+      'cpu',
+      'mem',
+      'heap',
+      'load',
+      'eventLoop',
+      'responseTime',
+      'rps',
+      'statusCodes'
     ],
     healthChecks: [
       {
