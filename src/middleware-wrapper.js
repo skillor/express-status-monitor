@@ -18,12 +18,45 @@ const middlewareWrapper = config => {
     }, [])
     .join(' ');
 
+  const customChartsHtml = validatedConfig.customCharts
+    .map(chart => {
+      return `<div class="container ${chart.id}">
+                <div class="stats-column">
+                  <h5>${chart.title}</h5>
+                  <h1 id="${chart.id}Stat">-</h1>
+                </div>
+                <div class="chart-container">
+                  <canvas id="${chart.id}Chart" width="200" height="100"></canvas>
+                </div>
+              </div>`;
+    })
+    .join('');
+
+  const appJsTmpl = fs
+    .readFileSync(path.join(__dirname, '/public/javascripts/app.js'))
+    .toString();
+
+  const appJsScript = Handlebars
+    .compile(appJsTmpl)({
+      customCharts: JSON.stringify(validatedConfig.customCharts
+        .map(chart => {
+          return {
+            id: chart.id,
+            defaultValue: chart.defaultValue ? '' + chart.defaultValue : '-',
+            decimalFixed: typeof chart.decimalFixed === 'number' ? chart.decimalFixed : 2,
+            prefix: chart.prefix ? '' + chart.prefix : '',
+            suffix: chart.suffix ? '' + chart.suffix : ''
+          }
+        }))
+    });
+
   const data = {
     title: validatedConfig.title,
     port: validatedConfig.port,
     socketPath: validatedConfig.socketPath,
     bodyClasses,
-    script: fs.readFileSync(path.join(__dirname, '/public/javascripts/app.js')),
+    customCharts: customChartsHtml,
+    script: appJsScript,
     style: fs.readFileSync(path.join(__dirname, '/public/stylesheets/', validatedConfig.theme))
   };
 
