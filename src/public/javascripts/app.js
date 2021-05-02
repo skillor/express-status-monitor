@@ -83,7 +83,7 @@ var eventLoopDataset = [Object.create(defaultDataset)];
 var responseTimeDataset = [Object.create(defaultDataset)];
 var rpsDataset = [Object.create(defaultDataset)];
 
-customCharts.forEach(chart => chart.Stat = document.getElementById(chart.id+'Stat'));
+customCharts.forEach(chart => chart.Stat = document.getElementById(chart.id + 'Stat'));
 
 var cpuStat = document.getElementById('cpuStat');
 var memStat = document.getElementById('memStat');
@@ -93,7 +93,7 @@ var eventLoopStat = document.getElementById('eventLoopStat');
 var responseTimeStat = document.getElementById('responseTimeStat');
 var rpsStat = document.getElementById('rpsStat');
 
-customCharts.forEach(chart => chart.ChartCtx = document.getElementById(chart.id+'Chart'));
+customCharts.forEach(chart => chart.ChartCtx = document.getElementById(chart.id + 'Chart'));
 
 var cpuChartCtx = document.getElementById('cpuChart');
 var memChartCtx = document.getElementById('memChart');
@@ -166,9 +166,11 @@ socket.on('esm_start', function (data) {
   var lastOsMetric = data[defaultSpan].os[data[defaultSpan].os.length - 1];
 
   customCharts.forEach(chart => {
-    chart.Stat.textContent = chart.prefix + chart.defaultValue + chart.suffix;
-    if (lastOsMetric) {
-      chart.Stat.textContent = chart.prefix + lastOsMetric.customCharts[chart.id].toFixed(chart.decimalFixed) + chart.suffix;
+    if (chart.Stat) {
+      chart.Stat.textContent = chart.prefix + chart.defaultValue + chart.suffix;
+      if (lastOsMetric) {
+        chart.Stat.textContent = chart.prefix + lastOsMetric.customCharts[chart.id].toFixed(chart.decimalFixed) + chart.suffix;
+      }
     }
 
     chart.Chart.data.datasets[0].data = data[defaultSpan].os.map(function (point) {
@@ -288,9 +290,13 @@ socket.on('esm_stats', function (data) {
     var responses = data.responses;
 
     customCharts.forEach(chart => {
-      chart.Stat.textContent = chart.prefix + chart.defaultValue + chart.suffix;
+      if (chart.Stat) {
+        chart.Stat.textContent = chart.prefix + chart.defaultValue + chart.suffix;
+      }
       if (os) {
-        chart.Stat.textContent = chart.prefix + os.customCharts[chart.id].toFixed(chart.decimalFixed) + chart.suffix;
+        if (chart.Stat) {
+          chart.Stat.textContent = chart.prefix + os.customCharts[chart.id].toFixed(chart.decimalFixed) + chart.suffix;
+        }
         chart.Chart.data.datasets[0].data.push(os.customCharts[chart.id]);
         chart.Chart.data.labels.push(os.timestamp);
       }
