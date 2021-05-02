@@ -72,6 +72,10 @@ var addTimestamp = function (point) {
     return point.timestamp;
 };
 
+var customCharts = JSON.parse(`{{{customCharts}}}`);
+
+customCharts.forEach(chart => chart.Dataset = [Object.create(defaultDataset)]);
+
 var cpuDataset = [Object.create(defaultDataset)];
 var memDataset = [Object.create(defaultDataset)];
 var loadDataset = [Object.create(defaultDataset)];
@@ -79,6 +83,8 @@ var heapDataset = [Object.create(defaultDataset)];
 var eventLoopDataset = [Object.create(defaultDataset)];
 var responseTimeDataset = [Object.create(defaultDataset)];
 var rpsDataset = [Object.create(defaultDataset)];
+
+customCharts.forEach(chart => chart.Stat = document.getElementById(chart.id + 'Stat'));
 
 var cpuStat = document.getElementById('cpuStat');
 var memStat = document.getElementById('memStat');
@@ -88,6 +94,8 @@ var eventLoopStat = document.getElementById('eventLoopStat');
 var responseTimeStat = document.getElementById('responseTimeStat');
 var rpsStat = document.getElementById('rpsStat');
 
+customCharts.forEach(chart => chart.ChartCtx = document.getElementById(chart.id + 'Chart'));
+
 var cpuChartCtx = document.getElementById('cpuChart');
 var memChartCtx = document.getElementById('memChart');
 var loadChartCtx = document.getElementById('loadChart');
@@ -96,6 +104,8 @@ var eventLoopChartCtx = document.getElementById('eventLoopChart');
 var responseTimeChartCtx = document.getElementById('responseTimeChart');
 var rpsChartCtx = document.getElementById('rpsChart');
 var statusCodesChartCtx = document.getElementById('statusCodesChart');
+
+customCharts.forEach(chart => chart.Chart = createChart(chart.ChartCtx, chart.Dataset));
 
 var cpuChart = createChart(cpuChartCtx, cpuDataset);
 var memChart = createChart(memChartCtx, memDataset);
@@ -133,6 +143,8 @@ var charts = [
     eventLoopChart,
 ];
 
+customCharts.forEach(chart => charts.push(chart.Chart));
+
 var onSpanChange = function (e) {
     e.target.classList.add('active');
     defaultSpan = parseInt(e.target.id, 10);
@@ -151,6 +163,65 @@ socket.on('esm_start', function (data) {
     // To keep consistency we also remove os data.
     data[defaultSpan].responses.pop();
     data[defaultSpan].os.pop();
+
+    var lastOsMetric = data[defaultSpan].os[data[defaultSpan].os.length - 1];
+
+    customCharts.forEach(chart => {
+        chart.Stat.textContent = chart.prefix + chart.defaultValue + chart.suffix;
+        if (lastOsMetric) {
+            chart.Stat.textContent = chart.prefix + lastOsMetric.customCharts[chart.id].toFixed(chart.decimalFixed) + chart.suffix;
+        }
+
+        chart.Chart.data.datasets[0].data = data[defaultSpan].os.map(function (point) {
+            return point.customCharts[chart.id];
+        });
+        chart.Chart.data.labels = data[defaultSpan].os.map(addTimestamp);
+    });
+
+    cpuStat.textContent = '0.0%';
+    if (lastOsMetric) {
+        cpuStat.textContent = lastOsMetric.cpu.toFixed(1) + '%';
+    }
+
+    cpuChart.data.datasets[0].data = data[defaultSpan].os.map(function (point) {
+        return point.cpu;
+    });
+    cpuChart.data.labels = data[defaultSpan].os.map(addTimestamp);
+
+    memStat.textContent = '0.0MB';
+    if (lastOsMetric) {
+        memStat.textContent = lastOsMetric.memory.toFixed(1) + 'MB';
+    }
+
+    memChart.data.datasets[0].data = data[defaultSpan].os.map(function (point) {
+        return point.memory;
+    });
+    memChart.data.labels = data[defaultSpan].os.map(addTimestamp);
+
+    loadStat.textContent = '0.00';
+    if (lastOsMetric) {
+        loadStat.textContent = lastOsMetric.load[defaultSpan].toFixed(2);
+    }
+
+    loadChart.data.datasets[0].data = data[defaultSpan].os.map(function (point) {
+        return point.load[0];
+    });
+    loadChart.data.labels = data[defaultSpan].os.map(addTimestamp);
+
+    heapChart.data.datasets[0].data = data[defaultSpan].os.map(function (point) {
+        return point.heap.used_heap_size / 1024 / 1024;
+    });
+    heapChart.data.labels = data[defaultSpan].os.map(addTimestamp);
+
+    eventLoopChart.data.datasets[0].data = data[defaultSpan].os.map(function (point) {
+        if (point.loop) {
+            return point.loop.sum;
+        }
+        return 0;
+    });
+    eventLoopChart.data.labels = data[defaultSpan].os.map(addTimestamp);
+
+    var lastResponseMetric = data[defaultSpan].responses[data[defaultSpan].responses.length - 1];
 
     var lastOsMetric = data[defaultSpan].os[data[defaultSpan].os.length - 1];
 
@@ -199,9 +270,26 @@ socket.on('esm_start', function (data) {
 
     var lastResponseMetric = data[defaultSpan].responses[data[defaultSpan].responses.length - 1];
 
+
+    customCharts.forEach(chart => {
+        chart.Stat.textContent = chart.prefix + chart.defaultValue + chart.suffix;
+        if (os) {
+            chart.Stat.textContent = chart.prefix + os.customCharts[chart.id].toFixed(chart.decimalFixed) + chart.suffix;
+            chart.Chart.data.datasets[0].data.push(os.customCharts[chart.id]);
+            chart.Chart.data.labels.push(os.timestamp);
+        }
+    });
+
     responseTimeStat.textContent = '0.00ms';
     if (lastResponseMetric) {
         responseTimeStat.textContent = lastResponseMetric.mean.toFixed(2) + 'ms';
+    }
+
+    cpuStat.textContent = '0.0%';
+    if (os) {
+        cpuStat.textContent = os.cpu.toFixed(1) + '%';
+        cpuChart.data.datasets[0].data.push(os.cpu);
+        cpuChart.data.labels.push(os.timestamp);
     }
 
     responseTimeChart.data.datasets[0].data = data[defaultSpan].responses.map(function (point) {

@@ -31,5 +31,6 @@ module.exports = {
     statusCodes: true,
   },
   ignoreStartsWith: '/admin',
+  customCharts: [],
   healthChecks: [],
 };
